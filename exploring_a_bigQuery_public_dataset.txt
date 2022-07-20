@@ -1,0 +1,949 @@
+SELECT
+  name, gender,
+  SUM(number) AS total
+FROM
+  `bigquery-public-data.usa_names.usa_1910_2013`
+GROUP BY
+  name, gender
+ORDER BY
+  total DESC
+LIMIT
+  10
+
+
+  name:string,gender:string,count:integer
+
+  SELECT
+ name, count
+FROM
+ `babynames.names_2014`
+WHERE
+ gender = 'M'
+ORDER BY count DESC LIMIT 5
+
+Which of the following is NOT one of the advantages of Google Cloud security
+check
+Google Cloud will automatically manage and curate your content and access policies to be safe for the public
+
+If you don't have a large dataset of your own but still want to practice writing queries and building pipelines on Google Cloud Platform, what should you do?
+check
+Find other public datasets online and upload them into BigQuery
+Correct!
+check
+Work to create your own dataset and then upload it into BigQuery for analysis
+check
+Practice with the datasets in the Google Cloud Public Datasets program
+
+
+As you saw in the demo, Compute Engine nodes on GCP are:
+check
+Allocated on demand, and you pay for the time that they are up.
+
+
+You have a large enterprise that will likely have many teams using their own Google Cloud Platform projects and resources. What should you be sure to have to help manage and administer these resources? (check all that apply)
+check
+Folders for teams and/or products
+Correct!
+check
+A defined access control policy with Cloud IAM
+Correct!
+check
+A defined Organization
+
+
+What are the common big data challenges that you will be building solutions for in this course? (check all that apply)
+check
+Building streaming data pipelines
+Correct!
+check
+Analyzing large datasets at scale
+Correct!
+check
+Applying machine learning to your datasets
+Correct!
+check
+Migrating existing on-premise workloads to the cloud
+
+
+SQL
+
+gcloud sql connect rentals --user=root --quiet
+
+
+SELECT *
+FROM "fg-immersionday-e21415d6-1657228834"
+LIMIT 1000
+
+Recommending Products Using Cloud SQL and Spark
+
+CREATE DATABASE IF NOT EXISTS recommendation_spark;
+USE recommendation_spark;
+DROP TABLE IF EXISTS Recommendation;
+DROP TABLE IF EXISTS Rating;
+DROP TABLE IF EXISTS Accommodation;
+CREATE TABLE IF NOT EXISTS Accommodation
+(
+  id varchar(255),
+  title varchar(255),
+  location varchar(255),
+  price int,
+  rooms int,
+  rating float,
+  type varchar(255),
+  PRIMARY KEY (ID)
+);
+CREATE TABLE  IF NOT EXISTS Rating
+(
+  userId varchar(255),
+  accoId varchar(255),
+  rating int,
+  PRIMARY KEY(accoId, userId),
+  FOREIGN KEY (accoId)
+    REFERENCES Accommodation(id)
+);
+CREATE TABLE  IF NOT EXISTS Recommendation
+(
+  userId varchar(255),
+  accoId varchar(255),
+  prediction float,
+  PRIMARY KEY(userId, accoId),
+  FOREIGN KEY (accoId)
+    REFERENCES Accommodation(id)
+);
+SHOW DATABASES;
+
+
+mysql> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+4 rows in set (0.10 sec)
+Note: You must always end your mySQL commands with a semi-colon ;
+
+
+USE recommendation_spark;
+SHOW TABLES;
++--------------------------------+
+| Tables_in_recommendation_spark |
++--------------------------------+
+| Accommodation                  |
+| Rating                         |
+| Recommendation                 |
++--------------------------------+
+3 rows in set (0.10 sec)
+
+
+mysql> SELECT * FROM Accommodation;
+Empty set (0.11 sec)
+
+echo "Creating bucket: gs://$DEVSHELL_PROJECT_ID"
+gsutil mb gs://$DEVSHELL_PROJECT_ID
+echo "Copying data to our storage from public dataset"
+gsutil cp gs://cloud-training/bdml/v2.0/data/accommodation.csv gs://$DEVSHELL_PROJECT_ID
+gsutil cp gs://cloud-training/bdml/v2.0/data/rating.csv gs://$DEVSHELL_PROJECT_ID
+echo "Show the files in our bucket"
+gsutil ls gs://$DEVSHELL_PROJECT_ID
+echo "View some sample data"
+gsutil cat gs://$DEVSHELL_PROJECT_ID/accommodation.csv
+
+
+USE recommendation_spark;
+SELECT * FROM Rating
+LIMIT 15;
+
++--------+--------+--------+
+| userId | accoId | rating |
++--------+--------+--------+
+| 10     | 1      |      1 |
+| 13     | 1      |      1 |
+| 18     | 1      |      2 |
+| 12     | 10     |      3 |
+| 18     | 10     |      1 |
+| 21     | 10     |      2 |
+| 4      | 10     |      1 |
+| 1      | 11     |      1 |
+| 10     | 11     |      1 |
+| 11     | 11     |      1 |
+| 12     | 11     |      2 |
+| 13     | 11     |      3 |
+| 14     | 11     |      3 |
+| 15     | 11     |      1 |
+| 16     | 11     |      2 |
++--------+--------+--------+
+15 rows in set (0.10 sec)
+
+mysql> SELECT COUNT(*) AS num_ratings
+    -> FROM Rating;
++-------------+
+| num_ratings |
++-------------+
+|        1186 |
++-------------+
+1 row in set (0.11 sec)
+
+SELECT
+    ->     COUNT(userId) AS num_ratings,
+    ->     COUNT(DISTINCT userId) AS distinct_user_ratings,
+    ->     MIN(rating) AS worst_rating,
+    ->     MAX(rating) AS best_rating,
+    ->     AVG(rating) AS avg_rating
+    -> FROM Rating;
++-------------+-----------------------+--------------+-------------+------------+
+| num_ratings | distinct_user_ratings | worst_rating | best_rating | avg_rating |
++-------------+-----------------------+--------------+-------------+------------+
+|        1186 |                    25 |            1 |           5 |     2.4646 |
++-------------+-----------------------+--------------+-------------+------------+
+1 row in set (0.11 sec)
+
+mysql> SELECT
+    ->     userId,
+    ->     COUNT(rating) AS num_ratings
+    -> FROM Rating
+    -> GROUP BY userId
+    -> ORDER BY num_ratings DESC;
++--------+-------------+
+| userId | num_ratings |
++--------+-------------+
+| 16     |          75 |
+| 4      |          70 |
+| 7      |          69 |
+| 10     |          66 |
+| 23     |          66 |
+| 21     |          63 |
+| 8      |          58 |
+| 13     |          48 |
+| 19     |          48 |
+| 12     |          46 |
+| 1      |          46 |
+| 20     |          44 |
+| 2      |          43 |
+| 18     |          42 |
+| 17     |          42 |
+| 3      |          42 |
+| 6      |          42 |
+| 11     |          41 |
+| 24     |          39 |
+| 5      |          39 |
+| 9      |          39 |
+| 14     |          37 |
+| 15     |          37 |
+| 22     |          35 |
+| 0      |           9 |
++--------+-------------+
+25 rows in set (0.10 sec)
+
+exit
+
+DATAPROC
+
+echo "Authorizing Cloud Dataproc to connect with Cloud SQL"
+CLUSTER=rentals
+CLOUDSQL=rentals
+ZONE=us-central1-b
+NWORKERS=2
+machines="$CLUSTER-m"
+for w in `seq 0 $(($NWORKERS - 1))`; do
+   machines="$machines $CLUSTER-w-$w"
+done
+echo "Machines to authorize: $machines in $ZONE ... finding their IP addresses"
+ips=""
+for machine in $machines; do
+    IP_ADDRESS=$(gcloud compute instances describe $machine --zone=$ZONE --format='value(networkInterfaces.accessConfigs[].natIP)' | sed "s/\['//g" | sed "s/'\]//g" )/32
+    echo "IP address of $machine is $IP_ADDRESS"
+    if [ -z  $ips ]; then
+       ips=$IP_ADDRESS
+    else
+       ips="$ips,$IP_ADDRESS"
+    fi
+done
+echo "Authorizing [$ips] to access cloudsql=$CLOUDSQL"
+gcloud sql instances patch $CLOUDSQL --authorized-networks $ips
+
+
+104.198.68.111
+
+gsutil cp gs://cloud-training/bdml/v2.0/model/train_and_apply.py train_and_apply.py
+cloudshell edit train_and_apply.py
+
+gsutil cp train_and_apply.py gs://$DEVSHELL_PROJECT_ID
+
+gs://qwiklabs-gcp-02-d34fe42f8232/train_and_apply.py
+
+SQL
+
+mysql> USE recommendation_spark;
+Database changed
+mysql> SELECT COUNT(*) AS count FROM Recommendation;
++-------+
+| count |
++-------+
+|   125 |
++-------+
+1 row in set (0.10 sec)
+
+mysql> SELECT
+    ->     r.userid,
+    ->     r.accoid,
+    ->     r.prediction,
+    ->     a.title,
+    ->     a.location,
+    ->     a.price,
+    ->     a.rooms,
+    ->     a.rating,
+    ->     a.type
+    -> FROM Recommendation as r
+    -> JOIN Accommodation as a
+    -> ON r.accoid = a.id
+    -> WHERE r.userid = 10;
++--------+--------+------------+-------------------------+--------------+-------+-------+--------+---------+
+| userid | accoid | prediction | title                   | location     | price | rooms | rating | type    |
++--------+--------+------------+-------------------------+--------------+-------+-------+--------+---------+
+| 10     | 43     |  2.0021508 | Nice Private Hut        | Melbourne    |    60 |     3 |    2.8 | cottage |
+| 10     | 21     |  1.8094425 | Big Peaceful Cabin      | Seattle      |    80 |     2 |    4.9 | cottage |
+| 10     | 31     |   1.794257 | Colossal Private Castle | Buenos Aires |  1400 |    15 |    3.3 | castle  |
+| 10     | 40     |   1.748596 | Colossal Private Castle | Seattle      |  2900 |    24 |    1.5 | castle  |
+| 10     | 32     |  1.7116295 | Immense Private Hall    | Seattle      |   850 |    12 |      1 | mansion |
++--------+--------+------------+-------------------------+--------------+-------+-------+--------+---------+
+5 rows in set (0.11 sec)
+
+Predict Visitor Purchases with a Classification Model in BQML
+
+#standardSQL
+WITH visitors AS(
+SELECT
+COUNT(DISTINCT fullVisitorId) AS total_visitors
+FROM `data-to-insights.ecommerce.web_analytics`
+),
+purchasers AS(
+SELECT
+COUNT(DISTINCT fullVisitorId) AS total_purchasers
+FROM `data-to-insights.ecommerce.web_analytics`
+WHERE totals.transactions IS NOT NULL
+)
+SELECT
+  total_visitors,
+  total_purchasers,
+  total_purchasers / total_visitors AS conversion_rate
+FROM visitors, purchasers
+
+SELECT
+  p.v2ProductName,
+  p.v2ProductCategory,
+  SUM(p.productQuantity) AS units_sold,
+  ROUND(SUM(p.localProductRevenue/1000000),2) AS revenue
+FROM `data-to-insights.ecommerce.web_analytics`,
+UNNEST(hits) AS h,
+UNNEST(h.product) AS p
+GROUP BY 1, 2
+ORDER BY revenue DESC
+LIMIT 5;
+
+# visitors who bought on a return visit (could have bought on first as well
+WITH all_visitor_stats AS (
+SELECT
+  fullvisitorid, # 741,721 unique visitors
+  IF(COUNTIF(totals.transactions > 0 AND totals.newVisits IS NULL) > 0, 1, 0) AS will_buy_on_return_visit
+  FROM `data-to-insights.ecommerce.web_analytics`
+  GROUP BY fullvisitorid
+)
+SELECT
+  COUNT(DISTINCT fullvisitorid) AS total_visitors,
+  will_buy_on_return_visit
+FROM all_visitor_stats
+GROUP BY will_buy_on_return_visit
+
+SELECT
+  * EXCEPT(fullVisitorId)
+FROM
+  # features
+  (SELECT
+    fullVisitorId,
+    IFNULL(totals.bounces, 0) AS bounces,
+    IFNULL(totals.timeOnSite, 0) AS time_on_site
+  FROM
+    `data-to-insights.ecommerce.web_analytics`
+  WHERE
+    totals.newVisits = 1)
+  JOIN
+  (SELECT
+    fullvisitorid,
+    IF(COUNTIF(totals.transactions > 0 AND totals.newVisits IS NULL) > 0, 1, 0) AS will_buy_on_return_visit
+  FROM
+      `data-to-insights.ecommerce.web_analytics`
+  GROUP BY fullvisitorid)
+  USING (fullVisitorId)
+ORDER BY time_on_site DESC
+LIMIT 10;
+
+train the model
+CREATE OR REPLACE MODEL `ecommerce.classification_model`
+OPTIONS
+(
+model_type='logistic_reg',
+labels = ['will_buy_on_return_visit']
+)
+AS
+#standardSQL
+SELECT
+  * EXCEPT(fullVisitorId)
+FROM
+  # features
+  (SELECT
+    fullVisitorId,
+    IFNULL(totals.bounces, 0) AS bounces,
+    IFNULL(totals.timeOnSite, 0) AS time_on_site
+  FROM
+    `data-to-insights.ecommerce.web_analytics`
+  WHERE
+    totals.newVisits = 1
+    AND date BETWEEN '20160801' AND '20170430') # train on first 9 months
+  JOIN
+  (SELECT
+    fullvisitorid,
+    IF(COUNTIF(totals.transactions > 0 AND totals.newVisits IS NULL) > 0, 1, 0) AS will_buy_on_return_visit
+  FROM
+      `data-to-insights.ecommerce.web_analytics`
+  GROUP BY fullvisitorid)
+  USING (fullVisitorId)
+;
+
+evaluate the model
+SELECT
+  roc_auc,
+  CASE
+    WHEN roc_auc > .9 THEN 'good'
+    WHEN roc_auc > .8 THEN 'fair'
+    WHEN roc_auc > .7 THEN 'decent'
+    WHEN roc_auc > .6 THEN 'not great'
+  ELSE 'poor' END AS model_quality
+FROM
+  ML.EVALUATE(MODEL ecommerce.classification_model,  (
+SELECT
+  * EXCEPT(fullVisitorId)
+FROM
+  # features
+  (SELECT
+    fullVisitorId,
+    IFNULL(totals.bounces, 0) AS bounces,
+    IFNULL(totals.timeOnSite, 0) AS time_on_site
+  FROM
+    `data-to-insights.ecommerce.web_analytics`
+  WHERE
+    totals.newVisits = 1
+    AND date BETWEEN '20170501' AND '20170630') # eval on 2 months
+  JOIN
+  (SELECT
+    fullvisitorid,
+    IF(COUNTIF(totals.transactions > 0 AND totals.newVisits IS NULL) > 0, 1, 0) AS will_buy_on_return_visit
+  FROM
+      `data-to-insights.ecommerce.web_analytics`
+  GROUP BY fullvisitorid)
+  USING (fullVisitorId)
+));
+
+Add some new features and create a second machine learning model called classification_model_2:
+CREATE OR REPLACE MODEL `ecommerce.classification_model_2`
+OPTIONS
+  (model_type='logistic_reg', labels = ['will_buy_on_return_visit']) AS
+WITH all_visitor_stats AS (
+SELECT
+  fullvisitorid,
+  IF(COUNTIF(totals.transactions > 0 AND totals.newVisits IS NULL) > 0, 1, 0) AS will_buy_on_return_visit
+  FROM `data-to-insights.ecommerce.web_analytics`
+  GROUP BY fullvisitorid
+)
+# add in new features
+SELECT * EXCEPT(unique_session_id) FROM (
+  SELECT
+      CONCAT(fullvisitorid, CAST(visitId AS STRING)) AS unique_session_id,
+      # labels
+      will_buy_on_return_visit,
+      MAX(CAST(h.eCommerceAction.action_type AS INT64)) AS latest_ecommerce_progress,
+      # behavior on the site
+      IFNULL(totals.bounces, 0) AS bounces,
+      IFNULL(totals.timeOnSite, 0) AS time_on_site,
+      IFNULL(totals.pageviews, 0) AS pageviews,
+      # where the visitor came from
+      trafficSource.source,
+      trafficSource.medium,
+      channelGrouping,
+      # mobile or desktop
+      device.deviceCategory,
+      # geographic
+      IFNULL(geoNetwork.country, "") AS country
+  FROM `data-to-insights.ecommerce.web_analytics`,
+     UNNEST(hits) AS h
+    JOIN all_visitor_stats USING(fullvisitorid)
+  WHERE 1=1
+    # only predict for new visits
+    AND totals.newVisits = 1
+    AND date BETWEEN '20160801' AND '20170430' # train 9 months
+  GROUP BY
+  unique_session_id,
+  will_buy_on_return_visit,
+  bounces,
+  time_on_site,
+  totals.pageviews,
+  trafficSource.source,
+  trafficSource.medium,
+  channelGrouping,
+  device.deviceCategory,
+  country
+);
+
+#standardSQL
+SELECT
+  roc_auc,
+  CASE
+    WHEN roc_auc > .9 THEN 'good'
+    WHEN roc_auc > .8 THEN 'fair'
+    WHEN roc_auc > .7 THEN 'decent'
+    WHEN roc_auc > .6 THEN 'not great'
+  ELSE 'poor' END AS model_quality
+FROM
+  ML.EVALUATE(MODEL ecommerce.classification_model_2,  (
+WITH all_visitor_stats AS (
+SELECT
+  fullvisitorid,
+  IF(COUNTIF(totals.transactions > 0 AND totals.newVisits IS NULL) > 0, 1, 0) AS will_buy_on_return_visit
+  FROM `data-to-insights.ecommerce.web_analytics`
+  GROUP BY fullvisitorid
+)
+# add in new features
+SELECT * EXCEPT(unique_session_id) FROM (
+  SELECT
+      CONCAT(fullvisitorid, CAST(visitId AS STRING)) AS unique_session_id,
+      # labels
+      will_buy_on_return_visit,
+      MAX(CAST(h.eCommerceAction.action_type AS INT64)) AS latest_ecommerce_progress,
+      # behavior on the site
+      IFNULL(totals.bounces, 0) AS bounces,
+      IFNULL(totals.timeOnSite, 0) AS time_on_site,
+      totals.pageviews,
+      # where the visitor came from
+      trafficSource.source,
+      trafficSource.medium,
+      channelGrouping,
+      # mobile or desktop
+      device.deviceCategory,
+      # geographic
+      IFNULL(geoNetwork.country, "") AS country
+  FROM `data-to-insights.ecommerce.web_analytics`,
+     UNNEST(hits) AS h
+    JOIN all_visitor_stats USING(fullvisitorid)
+  WHERE 1=1
+    # only predict for new visits
+    AND totals.newVisits = 1
+    AND date BETWEEN '20170501' AND '20170630' # eval 2 months
+  GROUP BY
+  unique_session_id,
+  will_buy_on_return_visit,
+  bounces,
+  time_on_site,
+  totals.pageviews,
+  trafficSource.source,
+  trafficSource.medium,
+  channelGrouping,
+  device.deviceCategory,
+  country
+)
+));
+
+
+Predict which new visitors will come back and purchase
+
+SELECT
+*
+FROM
+  ml.PREDICT( MODEL `ecommerce.classification_model_2`,
+   (
+WITH all_visitor_stats AS (
+SELECT
+  fullvisitorid,
+  IF(COUNTIF(totals.transactions > 0 AND totals.newVisits IS NULL) > 0, 1, 0) AS will_buy_on_return_visit
+  FROM `data-to-insights.ecommerce.web_analytics`
+  GROUP BY fullvisitorid
+)
+  SELECT
+      CONCAT(fullvisitorid, '-',CAST(visitId AS STRING)) AS unique_session_id,
+      # labels
+      will_buy_on_return_visit,
+      MAX(CAST(h.eCommerceAction.action_type AS INT64)) AS latest_ecommerce_progress,
+      # behavior on the site
+      IFNULL(totals.bounces, 0) AS bounces,
+      IFNULL(totals.timeOnSite, 0) AS time_on_site,
+      totals.pageviews,
+      # where the visitor came from
+      trafficSource.source,
+      trafficSource.medium,
+      channelGrouping,
+      # mobile or desktop
+      device.deviceCategory,
+      # geographic
+      IFNULL(geoNetwork.country, "") AS country
+  FROM `data-to-insights.ecommerce.web_analytics`,
+     UNNEST(hits) AS h
+    JOIN all_visitor_stats USING(fullvisitorid)
+  WHERE
+    # only predict for new visits
+    totals.newVisits = 1
+    AND date BETWEEN '20170701' AND '20170801' # test 1 month
+  GROUP BY
+  unique_session_id,
+  will_buy_on_return_visit,
+  bounces,
+  time_on_site,
+  totals.pageviews,
+  trafficSource.source,
+  trafficSource.medium,
+  channelGrouping,
+  device.deviceCategory,
+  country
+	)
+)
+ORDER BY
+  predicted_will_buy_on_return_visit DESC;
+
+
+first model
+CREATE OR REPLACE MODEL `austin_bikes_trip.classification_model`
+OPTIONS
+(
+model_type='linear_reg',
+labels = ['duration_minutes']
+)
+AS
+#standardSQL
+SELECT
+  * EXCEPT(start_station_id, station_id)
+FROM
+  # features
+  (SELECT
+    a.duration_minutes,
+    a.start_station_name as location,
+    EXTRACT(HOUR FROM a.start_time) AS hour,
+    EXTRACT(DAYOFWEEK FROM a.start_time) AS dayofweek,
+    a.start_station_id,
+    b.address,
+    b.station_id
+  FROM
+    `bigquery-public-data.austin_bikeshare.bikeshare_trips` a
+    JOIN `bigquery-public-data.austin_bikeshare.bikeshare_stations` b
+    ON station_id = start_station_id
+  WHERE
+    EXTRACT(YEAR FROM start_time) = 2018);
+
+
+second model
+    CREATE OR REPLACE MODEL `austin_bikes_trip.classification_model`
+OPTIONS
+(
+model_type='linear_reg',
+labels = ['duration_minutes']
+)
+AS
+#standardSQL
+  # features
+  (SELECT
+    duration_minutes,
+    start_station_name,
+    start_station_id,
+    subscriber_type,
+  FROM
+    `bigquery-public-data.austin_bikeshare.bikeshare_trips` 
+  WHERE
+    EXTRACT(YEAR FROM start_time) = 2018);
+
+
+
+
+evaluate 1st model
+    SELECT 
+        SQRT(mean_squared_error) AS rmse, 
+        mean_absolute_error 
+FROM ML.EVALUATE(MODEL austin_bikes_trip.classification_model,  (
+#standardSQL
+SELECT
+  * EXCEPT(start_station_id, station_id)
+FROM
+  # features
+  (SELECT
+    a.duration_minutes,
+    a.start_station_name as location,
+    EXTRACT(HOUR FROM a.start_time) AS hour,
+    EXTRACT(DAYOFWEEK FROM a.start_time) AS dayofweek,
+    a.start_station_id,
+    b.address,
+    b.station_id
+  FROM
+    `bigquery-public-data.austin_bikeshare.bikeshare_trips` a
+    JOIN `bigquery-public-data.austin_bikeshare.bikeshare_stations` b
+    ON station_id = start_station_id
+  WHERE
+    EXTRACT(YEAR FROM start_time) = 2019)
+));
+
+
+evaluate 2nd model
+  SELECT 
+        SQRT(mean_squared_error) AS rmse, 
+        mean_absolute_error 
+FROM ML.EVALUATE(MODEL austin_bikes_trip.classification_model2,  (
+  (SELECT
+    duration_minutes,
+    start_station_name,
+    start_station_id,
+    subscriber_type,
+  FROM
+    `bigquery-public-data.austin_bikeshare.bikeshare_trips` 
+  WHERE
+    EXTRACT(YEAR FROM start_time) = 2019)));
+
+SELECT COUNT(start_station_name) AS num_stations_in2019,
+      start_station_name
+FROM `bigquery-public-data.austin_bikeshare.bikeshare_trips`
+WHERE  EXTRACT(YEAR FROM start_time) = 2019 
+      --  AND subscriber_type ='Single Trip'
+GROUP BY start_station_name
+ORDER BY num_stations_in2019 DESC LIMIT 1
+
+
+SELECT AVG(predicted_duration_minutes) AS predicted_average_trip_duration
+FROM ML.predict(MODEL `austin_bikes_trip.classification_model2`, (
+SELECT
+start_station_name,
+EXTRACT(HOUR FROM start_time) AS hourofstart,
+subscriber_type,
+duration_minutes,
+start_station_id
+FROM
+`bigquery-public-data.austin_bikeshare.bikeshare_trips`
+WHERE
+EXTRACT(YEAR FROM start_time) = 2019
+AND subscriber_type = 'Single Trip'
+AND start_station_name = '21st & Speedway @PCL'))
+
+
+SELECT
+*
+FROM
+  ml.PREDICT(MODEL `austin_bikeshare_rides.classification_model2`,
+   (
+WITH avg_trip_time AS (
+SELECT
+    COUNT(start_station_name) AS num_stations_in2019,
+    start_station_name,
+  FROM
+    `bigquery-public-data.austin_bikeshare.bikeshare_trips` 
+  WHERE
+    EXTRACT(YEAR FROM start_time) = 2019
+    -- AND subscriber_type='Single Trip'
+  GROUP BY start_station_name
+  ORDER BY num_stations_in2019 DESC
+)
+
+
+
+
+CREATE OR REPLACE MODEL `ecommerce.classification_model_3`
+        OPTIONS
+          (model_type='BOOSTED_TREE_CLASSIFIER' , l2_reg = 0.1, num_parallel_tree = 8, max_tree_depth = 10,
+              labels = ['will_buy_on_return_visit']) AS
+        WITH all_visitor_stats AS (
+        SELECT
+          fullvisitorid,
+          IF(COUNTIF(totals.transactions > 0 AND totals.newVisits IS NULL) > 0, 1, 0) AS will_buy_on_return_visit
+          FROM `data-to-insights.ecommerce.web_analytics`
+          GROUP BY fullvisitorid
+        )
+        # add in new features
+        SELECT * EXCEPT(unique_session_id) FROM (
+          SELECT
+              CONCAT(fullvisitorid, CAST(visitId AS STRING)) AS unique_session_id,
+              # labels
+              will_buy_on_return_visit,
+              MAX(CAST(h.eCommerceAction.action_type AS INT64)) AS latest_ecommerce_progress,
+              # behavior on the site
+              IFNULL(totals.bounces, 0) AS bounces,
+              IFNULL(totals.timeOnSite, 0) AS time_on_site,
+              totals.pageviews,
+              # where the visitor came from
+              trafficSource.source,
+              trafficSource.medium,
+              channelGrouping,
+              # mobile or desktop
+              device.deviceCategory,
+              # geographic
+              IFNULL(geoNetwork.country, "") AS country
+          FROM `data-to-insights.ecommerce.web_analytics`,
+             UNNEST(hits) AS h
+            JOIN all_visitor_stats USING(fullvisitorid)
+          WHERE 1=1
+            # only predict for new visits
+            AND totals.newVisits = 1
+            AND date BETWEEN '20160801' AND '20170430' # train 9 months
+          GROUP BY
+          unique_session_id,
+          will_buy_on_return_visit,
+          bounces,
+          time_on_site,
+          totals.pageviews,
+          trafficSource.source,
+          trafficSource.medium,
+          channelGrouping,
+          device.deviceCategory,
+          country
+        );
+
+
+        SELECT
+*
+FROM
+  ml.PREDICT(MODEL `ecommerce.classification_model_3`,
+   (
+WITH all_visitor_stats AS (
+SELECT
+  fullvisitorid,
+  IF(COUNTIF(totals.transactions > 0 AND totals.newVisits IS NULL) > 0, 1, 0) AS will_buy_on_return_visit
+  FROM `data-to-insights.ecommerce.web_analytics`
+  GROUP BY fullvisitorid
+)
+  SELECT
+      CONCAT(fullvisitorid, '-',CAST(visitId AS STRING)) AS unique_session_id,
+      # labels
+      will_buy_on_return_visit,
+      MAX(CAST(h.eCommerceAction.action_type AS INT64)) AS latest_ecommerce_progress,
+      # behavior on the site
+      IFNULL(totals.bounces, 0) AS bounces,
+      IFNULL(totals.timeOnSite, 0) AS time_on_site,
+      totals.pageviews,
+      # where the visitor came from
+      trafficSource.source,
+      trafficSource.medium,
+      channelGrouping,
+      # mobile or desktop
+      device.deviceCategory,
+      # geographic
+      IFNULL(geoNetwork.country, "") AS country
+  FROM `data-to-insights.ecommerce.web_analytics`,
+     UNNEST(hits) AS h
+    JOIN all_visitor_stats USING(fullvisitorid)
+  WHERE
+    # only predict for new visits
+    totals.newVisits = 1
+    AND date BETWEEN '20170701' AND '20170801' # test 1 month
+  GROUP BY
+  unique_session_id,
+  will_buy_on_return_visit,
+  bounces,
+  time_on_site,
+  totals.pageviews,
+  trafficSource.source,
+  trafficSource.medium,
+  channelGrouping,
+  device.deviceCategory,
+  country
+)
+)
+ORDER BY
+  predicted_will_buy_on_return_visit DESC;
+
+
+
+  SELECT
+*
+FROM
+  ml.PREDICT(MODEL `ecommerce.classification_model_3`,
+   (
+WITH all_visitor_stats AS (
+SELECT
+  fullvisitorid,
+  IF(COUNTIF(totals.transactions > 0 AND totals.newVisits IS NULL) > 0, 1, 0) AS will_buy_on_return_visit
+  FROM `data-to-insights.ecommerce.web_analytics`
+  GROUP BY fullvisitorid
+)
+  SELECT
+      CONCAT(fullvisitorid, '-',CAST(visitId AS STRING)) AS unique_session_id,
+      # labels
+      will_buy_on_return_visit,
+      MAX(CAST(h.eCommerceAction.action_type AS INT64)) AS latest_ecommerce_progress,
+      # behavior on the site
+      IFNULL(totals.bounces, 0) AS bounces,
+      IFNULL(totals.timeOnSite, 0) AS time_on_site,
+      totals.pageviews,
+      # where the visitor came from
+      trafficSource.source,
+      trafficSource.medium,
+      channelGrouping,
+      # mobile or desktop
+      device.deviceCategory,
+      # geographic
+      IFNULL(geoNetwork.country, "") AS country
+  FROM `data-to-insights.ecommerce.web_analytics`,
+     UNNEST(hits) AS h
+    JOIN all_visitor_stats USING(fullvisitorid)
+  WHERE
+    # only predict for new visits
+    totals.newVisits = 1
+    AND date BETWEEN '20170701' AND '20170801' # test 1 month
+  GROUP BY
+  unique_session_id,
+  will_buy_on_return_visit,
+  bounces,
+  time_on_site,
+  totals.pageviews,
+  trafficSource.source,
+  trafficSource.medium,
+  channelGrouping,
+  device.deviceCategory,
+  country
+)
+)
+ORDER BY
+  predicted_will_buy_on_return_visit DESC;
+
+
+
+
+  bq --location=us-west1 mk taxirides
+
+  bq --location=us-west1 mk \
+--time_partitioning_field timestamp \
+--schema ride_id:string,point_idx:integer,latitude:float,longitude:float,\
+timestamp:timestamp,meter_reading:float,meter_increment:float,ride_status:string,\
+passenger_count:integer -t taxirides.realtime
+
+WITH streaming_data AS (
+SELECT
+  timestamp,
+  TIMESTAMP_TRUNC(timestamp, HOUR, 'UTC') AS hour,
+  TIMESTAMP_TRUNC(timestamp, MINUTE, 'UTC') AS minute,
+  TIMESTAMP_TRUNC(timestamp, SECOND, 'UTC') AS second,
+  ride_id,
+  latitude,
+  longitude,
+  meter_reading,
+  ride_status,
+  passenger_count
+FROM
+  taxirides.realtime
+WHERE ride_status = 'dropoff'
+ORDER BY timestamp DESC
+LIMIT 1000
+)
+# calculate aggregations on stream for reporting:
+SELECT
+ ROW_NUMBER() OVER() AS dashboard_sort,
+ minute,
+ COUNT(DISTINCT ride_id) AS total_rides,
+ SUM(meter_reading) AS total_revenue,
+ SUM(passenger_count) AS total_passengers
+FROM streaming_data
+GROUP BY minute, timestamp
+
+
