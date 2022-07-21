@@ -1,0 +1,55 @@
+CREATE TABLE `bqml_tutorial.taxi_tip_input` AS
+SELECT
+  * EXCEPT(tip_amount), tip_amount AS label
+FROM
+  `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2018`
+WHERE
+  tip_amount IS NOT NULL
+LIMIT 100000
+
+CREATE MODEL `bqml_tutorial.hp_taxi_tip_model`
+OPTIONS
+  (model_type='linear_reg',
+   num_trials=20,
+   max_parallel_trials=2) AS
+SELECT
+  *
+FROM
+  `bqml_tutorial.taxi_tip_input`
+
+
+  SELECT *
+FROM
+  ML.TRIAL_INFO(MODEL `bqml_tutorial.hp_taxi_tip_model`)
+
+  SELECT *
+FROM
+  ML.EVALUATE(MODEL `bqml_tutorial.hp_taxi_tip_model`)
+
+
+
+SELECT
+  *
+FROM
+  ML.PREDICT(MODEL `bqml_tutorial.hp_taxi_tip_model`,
+    (
+    SELECT
+      *
+    FROM
+      `bqml_tutorial.taxi_tip_input`
+    LIMIT 10))
+
+
+
+SELECT
+  *
+FROM
+  ML.PREDICT(MODEL `bqml_tutorial.hp_taxi_tip_model`,
+    (
+    SELECT
+      *
+    FROM
+      `bqml_tutorial.taxi_tip_input`
+    LIMIT
+      10),
+    STRUCT(3 AS trial_id))
